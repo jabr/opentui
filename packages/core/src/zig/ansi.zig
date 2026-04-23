@@ -13,6 +13,7 @@ pub const ANSI = struct {
     pub const clear = "\x1b[2J";
     pub const home = "\x1b[H";
     pub const clearAndHome = "\x1b[H\x1b[2J";
+    pub const eraseToEndOfLine = "\x1b[K";
     pub const hideCursor = "\x1b[?25l";
     pub const showCursor = "\x1b[?25h";
     pub const defaultCursorStyle = "\x1b[0 q";
@@ -61,11 +62,19 @@ pub const ANSI = struct {
     pub const resetCursorColor = "\x1b]112\x07";
     pub const resetCursorColorFallback = "\x1b]12;default\x07";
     pub const resetMousePointer = "\x1b]22;\x07";
+
+    // OSC 11 - Set terminal background color
+    pub fn setTerminalBgColorOutput(writer: anytype, r: u8, g: u8, b: u8) AnsiError!void {
+        writer.print("\x1b]11;rgb:{x:0>2}/{x:0>2}/{x:0>2}\x07", .{ r, g, b }) catch return AnsiError.WriteFailed;
+    }
+
+    // OSC 111 - Reset terminal background color to default
+    pub const resetTerminalBgColor = "\x1b]111\x07";
     pub const saveCursorState = "\x1b[s";
     pub const restoreCursorState = "\x1b[u";
 
     pub fn setMousePointerOutput(writer: anytype, shape: []const u8) AnsiError!void {
-        writer.print("\x1b]22;{s}\x07", .{ shape }) catch return AnsiError.WriteFailed;
+        writer.print("\x1b]22;{s}\x07", .{shape}) catch return AnsiError.WriteFailed;
     }
 
     pub const switchToAlternateScreen = "\x1b[?1049h";
@@ -153,6 +162,8 @@ pub const ANSI = struct {
     pub const colorSchemeRequest = "\x1b[?996n";
     pub const colorSchemeSet = "\x1b[?2031h";
     pub const colorSchemeReset = "\x1b[?2031l";
+    pub const oscThemeQueries = "\x1b]10;?\x07\x1b]11;?\x07";
+    pub const oscThemeQueriesTmux = wrapForTmux(oscThemeQueries);
 
     // Key encoding
     pub const csiUPush = "\x1b[>{d}u";
